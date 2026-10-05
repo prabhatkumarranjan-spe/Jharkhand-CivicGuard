@@ -4,14 +4,31 @@
 
 1. Create an Atlas cluster and a database user.
 2. In Atlas Network Access, allow the IP address of the machine running the backend.
-3. Copy the cluster's Node.js connection string and replace the placeholders in
-   `.ENV.example`.
+3. Copy the cluster's Node.js connection string. Atlas SRV strings start with
+   `mongodb+srv://`; keep the generated hostname and connection options.
 4. Save the completed file as `.ENV` in this directory. Keep `.ENV` private and
    do not commit database credentials.
 
-`config/db.js` reads `MONGO_URI` from `backend/.ENV` and connects with Mongoose.
-The server entry point can call the exported `connectDB` function; this setup
-does not change server or route behavior.
+`config/db.js` reads `MONGODB_URI` (or the legacy `MONGO_URI`) from
+`backend/.ENV`. It also upgrades a legacy `mongodb://` URI for an Atlas
+`*.mongodb.net` host to the required SRV scheme. The server connects to MongoDB
+before listening, so it won't report a healthy API while the database is
+unavailable.
+
+If connection fails, verify the Atlas cluster is running, the database user's
+credentials are current, and Atlas **Network Access** allows the outbound IP
+address of the machine running the backend. The frontend user's IP is not the
+one to add. Ensure the backend host can resolve DNS SRV records and reach Atlas
+over TCP port `27017`. For Render, check the service's outbound IP addresses and
+add the required addresses to Atlas Network Access. Avoid opening the cluster
+to every IP unless you deliberately accept the security risk for temporary,
+isolated testing.
+
+The root `render.yaml` configures the Render web service. Set the private
+`MONGODB_URI` and `GEMINI_API_KEY` values in Render when creating the Blueprint;
+the file intentionally does not contain either secret. Configure `WEB_ORIGIN`
+if the frontend is hosted at a different web origin than the repository's
+GitHub Pages site.
 
 ## Demo/historical assets
 
