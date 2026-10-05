@@ -10,15 +10,18 @@ function isNonEmptyString(value) {
 
 function validateComplaintInput(req, res, next) {
   const { name, description, location, type } = req.body;
-  const missing = ["name", "description", "location", "type"].filter((field) => !isNonEmptyString(req.body[field]));
+  const missing = ["description", "location", "type"].filter((field) => !isNonEmptyString(req.body[field]));
 
   if (missing.length) {
     return res.status(400).json({ success: false, message: `Required fields cannot be empty: ${missing.join(", ")}` });
   }
+  if (name !== undefined && typeof name !== "string") {
+    return res.status(400).json({ success: false, message: "Name must be a string" });
+  }
   if (!allowedTypes.includes(type.trim())) {
     return res.status(400).json({ success: false, message: `Invalid type. Allowed types: ${allowedTypes.join(", ")}` });
   }
-  req.body.name = name.trim();
+  req.body.name = typeof name === "string" ? name.trim() : "";
   req.body.description = description.trim();
   req.body.location = location.trim();
   req.body.type = type.trim();
